@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import { useUser, UserButton } from "@clerk/nextjs";
 
 type Tone = "Provocative" | "Educational" | "Authentic";
 
 const tones: Tone[] = ["Provocative", "Educational", "Authentic"];
 
 export default function Home() {
+  const { isSignedIn } = useUser(); // Checks if user paid & logged in
   const [input, setInput] = useState("");
   const [tone, setTone] = useState<Tone>("Provocative");
   const [result, setResult] = useState("");
@@ -15,7 +17,6 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
   
-  // Fixes the Hydration Mismatch
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -27,18 +28,18 @@ export default function Home() {
   const handleGenerate = async () => {
     if (!input.trim() || loading) return;
 
-    // 1. THE GATEKEEPER: Check how many times they've used it
+    // 1. THE GATEKEEPER: Check if they are signed in (Pro) OR under the limit
     const currentUsage = parseInt(localStorage.getItem("ghostwriter_usage") || "0");
-    if (currentUsage >= 3) {
+    if (!isSignedIn && currentUsage >= 2) {
       setLimitReached(true);
-      return; // Stops the function from running the API call
+      return; 
     }
 
     setLoading(true);
     setError("");
     setResult("");
     setCopied(false);
-    setLimitReached(false); // Reset just in case
+    setLimitReached(false); 
 
     try {
       const response = await fetch("/api/generate", {
@@ -58,8 +59,10 @@ export default function Home() {
 
       setResult(generatedText);
 
-      // 2. THE TOLL BOOTH: Add 1 to their usage count
-      localStorage.setItem("ghostwriter_usage", (currentUsage + 1).toString());
+      // 2. THE TOLL BOOTH: Add 1 to usage only if they are not Pro
+      if (!isSignedIn) {
+        localStorage.setItem("ghostwriter_usage", (currentUsage + 1).toString());
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -75,7 +78,6 @@ export default function Home() {
     setTimeout(() => setCopied(false), 1600);
   };
 
-  // If we aren't mounted yet, we show a clean dark screen to prevent the error
   if (!mounted) return <div className="min-h-screen bg-[#040706]" />;
 
   return (
@@ -86,9 +88,14 @@ export default function Home() {
             <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Ghostwriter v1.0</h1>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">Founder Series</p>
           </div>
-          <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium tracking-wide text-emerald-300">
-            360Brew Optimized
-          </span>
+          
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium tracking-wide text-emerald-300">
+              {isSignedIn ? "Pro Intelligence Active" : "Ghostwriter Optimized"}
+            </span>
+            {/* Shows profile picture if logged in */}
+            <UserButton afterSignOutUrl="/" />
+          </div>
         </header>
 
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -150,20 +157,20 @@ export default function Home() {
         </section>
 
         {/* --- THE PAYWALL UI --- */}
-        {limitReached && (
+        {limitReached && !isSignedIn && (
           <div className="mt-8 p-6 rounded-2xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.45)] text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
               <span className="text-2xl">🔥</span>
             </div>
             <h3 className="mb-2 text-xl font-bold text-zinc-100">You're on fire!</h3>
             <p className="mx-auto mb-6 max-w-lg text-sm leading-relaxed text-zinc-400">
-              You've used your 3 free Ghostwriter generations. Upgrade to Pro for unlimited posts, custom brand voices, and priority Llama-3 access.
+              You've used your 2 free Ghostwriter generations. Upgrade to the **Founder Pass** for unlimited posts, custom brand voices, and priority access.
             </p>
             <button 
               className="rounded-xl bg-emerald-400 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95"
-              onClick={() => alert("Stripe checkout coming soon! DM the founder for early access.")}
+              onClick={() => window.open("https://razorpay.me/@pixelshift", "_blank")}
             >
-              Upgrade to Pro - $19/mo
+              Unlock Founder Pass - ₹399/mo
             </button>
           </div>
         )}
@@ -188,6 +195,28 @@ export default function Home() {
             {result || <span className="text-zinc-600 italic">Your viral-ready LinkedIn post will appear here...</span>}
           </div>
         </section>
+
+        {/* --- PIXELSHIFT FOOTER --- */}
+        <footer className="mt-20 border-t border-zinc-900 py-12 text-center">
+          <div className="mb-6">
+            <p className="text-xs font-medium uppercase tracking-widest text-zinc-500">
+              A <span className="text-emerald-400">Pixelshift</span> Project
+            </p>
+            <p className="mt-1 text-[10px] text-zinc-600">Built with ❤️ by Rishi Varma</p>
+          </div>
+          
+          <div className="mb-8 flex flex-wrap justify-center gap-x-8 gap-y-4 text-[10px] uppercase tracking-tighter text-zinc-500">
+            <a href="/privacy" className="transition hover:text-emerald-400">Privacy</a>
+            <a href="/terms" className="transition hover:text-emerald-400">Terms</a>
+            <a href="/refunds" className="transition hover:text-emerald-400">Refunds</a>
+            <a href="/shipping" className="transition hover:text-emerald-400">Shipping</a>
+            <a href="mailto:pixelshift.hq@gmail.com" className="underline underline-offset-4 transition hover:text-emerald-400">Support: pixelshift.hq@gmail.com</a>
+          </div>
+          
+          <p className="mx-auto max-w-md text-[9px] leading-relaxed text-zinc-700 italic">
+            Ghostwriter AI is a product of Pixelshift. Payments are processed securely via Razorpay under the legal name Rishi Varma. Digital access is provisioned within 24 hours of payment.
+          </p>
+        </footer>
       </div>
     </main>
   );
