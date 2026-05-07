@@ -8,7 +8,7 @@ type Tone = "Provocative" | "Educational" | "Authentic";
 const tones: Tone[] = ["Provocative", "Educational", "Authentic"];
 
 export default function Home() {
-  const { isSignedIn } = useUser(); // Checks if user paid & logged in
+  const { isSignedIn } = useUser();
   const [input, setInput] = useState("");
   const [tone, setTone] = useState<Tone>("Provocative");
   const [result, setResult] = useState("");
@@ -28,7 +28,6 @@ export default function Home() {
   const handleGenerate = async () => {
     if (!input.trim() || loading) return;
 
-    // 1. THE GATEKEEPER: Check if they are signed in (Pro) OR under the limit
     const currentUsage = parseInt(localStorage.getItem("ghostwriter_usage") || "0");
     if (!isSignedIn && currentUsage >= 2) {
       setLimitReached(true);
@@ -59,7 +58,6 @@ export default function Home() {
 
       setResult(generatedText);
 
-      // 2. THE TOLL BOOTH: Add 1 to usage only if they are not Pro
       if (!isSignedIn) {
         localStorage.setItem("ghostwriter_usage", (currentUsage + 1).toString());
       }
@@ -93,7 +91,7 @@ export default function Home() {
             <span className="hidden sm:inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium tracking-wide text-emerald-300">
               {isSignedIn ? "Pro Intelligence Active" : "Ghostwriter Optimized"}
             </span>
-            {/* 👈 FIX: Removed the afterSignOutUrl from here */}
+            {/* FIXED: Removed afterSignOutUrl prop */}
             <UserButton />
           </div>
         </header>
@@ -156,7 +154,6 @@ export default function Home() {
           </aside>
         </section>
 
-        {/* --- THE PAYWALL UI --- */}
         {limitReached && !isSignedIn && (
           <div className="mt-8 p-6 rounded-2xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.45)] text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
@@ -196,7 +193,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* --- PIXELSHIFT FOOTER --- */}
         <footer className="mt-20 border-t border-zinc-900 py-12 text-center">
           <div className="mb-6">
             <p className="text-xs font-medium uppercase tracking-widest text-zinc-500">
