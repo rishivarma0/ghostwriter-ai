@@ -93,8 +93,8 @@ export default function Home() {
             <span className="hidden sm:inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium tracking-wide text-emerald-300">
               {isSignedIn ? "Pro Intelligence Active" : "Ghostwriter Optimized"}
             </span>
-            {/* Shows profile picture if logged in */}
-            <UserButton afterSignOutUrl="/" />
+            {/* 👈 FIX: Removed the afterSignOutUrl from here */}
+            <UserButton />
           </div>
         </header>
 
