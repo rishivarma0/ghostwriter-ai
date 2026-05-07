@@ -13,6 +13,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
   
   // Fixes the Hydration Mismatch
   const [mounted, setMounted] = useState(false);
@@ -26,10 +27,18 @@ export default function Home() {
   const handleGenerate = async () => {
     if (!input.trim() || loading) return;
 
+    // 1. THE GATEKEEPER: Check how many times they've used it
+    const currentUsage = parseInt(localStorage.getItem("ghostwriter_usage") || "0");
+    if (currentUsage >= 3) {
+      setLimitReached(true);
+      return; // Stops the function from running the API call
+    }
+
     setLoading(true);
     setError("");
     setResult("");
     setCopied(false);
+    setLimitReached(false); // Reset just in case
 
     try {
       const response = await fetch("/api/generate", {
@@ -48,6 +57,10 @@ export default function Home() {
         data?.result || data?.post || data?.output || data?.text || "No response text returned.";
 
       setResult(generatedText);
+
+      // 2. THE TOLL BOOTH: Add 1 to their usage count
+      localStorage.setItem("ghostwriter_usage", (currentUsage + 1).toString());
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -135,6 +148,25 @@ export default function Home() {
             </div>
           </aside>
         </section>
+
+        {/* --- THE PAYWALL UI --- */}
+        {limitReached && (
+          <div className="mt-8 p-6 rounded-2xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.45)] text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
+              <span className="text-2xl">🔥</span>
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-zinc-100">You're on fire!</h3>
+            <p className="mx-auto mb-6 max-w-lg text-sm leading-relaxed text-zinc-400">
+              You've used your 3 free Ghostwriter generations. Upgrade to Pro for unlimited posts, custom brand voices, and priority Llama-3 access.
+            </p>
+            <button 
+              className="rounded-xl bg-emerald-400 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95"
+              onClick={() => alert("Stripe checkout coming soon! DM the founder for early access.")}
+            >
+              Upgrade to Pro - $19/mo
+            </button>
+          </div>
+        )}
 
         <section className="mt-6 rounded-2xl border border-zinc-800 bg-[#090d0b] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
           <div className="mb-4 flex items-center justify-between">
