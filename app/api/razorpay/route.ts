@@ -2,12 +2,19 @@ import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { auth } from "@clerk/nextjs/server";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!, 
-});
 export async function POST() {
   try {
+    const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      throw new Error("Razorpay keys are not configured on the server.");
+    }
+
+    const razorpay = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret,
+    });
+
     // 1. Verify the user is actually signed in
     const { userId } = await auth();
     if (!userId) {
@@ -22,9 +29,8 @@ export async function POST() {
 
     const order = await razorpay.orders.create(options);
     return NextResponse.json(order);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Razorpay Error:", error);
-    const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

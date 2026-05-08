@@ -91,17 +91,27 @@ export default function Home() {
 
     try {
       const res = await fetch("/api/razorpay", { method: "POST" });
-      const order = await res.json();
+      const data = await res.json().catch(() => ({ error: "Invalid server response from /api/razorpay." }));
 
-      if (order.error) throw new Error(order.error);
+      if (!res.ok || data.error) {
+        alert("Error: " + data.error);
+        return;
+      }
+
+      if (!(window as any).Razorpay) {
+        throw new Error("Razorpay SDK failed to load. Please refresh and try again.");
+      }
+      if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+        throw new Error("NEXT_PUBLIC_RAZORPAY_KEY_ID is missing.");
+      }
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
+        amount: data.amount,
+        currency: data.currency,
         name: "Ghostwriter AI",
         description: "Unlock Founder Pass",
-        order_id: order.id,
+        order_id: data.id,
         handler: function (response: any) {
           alert(`Payment Successful! ID: ${response.razorpay_payment_id}`);
           // Temporary unlock logic
@@ -120,7 +130,8 @@ export default function Home() {
       paymentObject.open();
     } catch (err) {
       console.error(err);
-      alert("Payment failed to initialize. Please try again.");
+      const message = err instanceof Error ? err.message : String(err);
+      alert("Error: " + message);
     }
   }, [isSignedIn, user]);
 
