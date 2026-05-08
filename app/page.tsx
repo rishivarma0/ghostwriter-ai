@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useUser, UserButton, SignInButton } from "@clerk/nextjs";
 
 type Tone = "Provocative" | "Educational" | "Authentic";
@@ -16,6 +16,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
+  const [isPro, setIsPro] = useState(false);
   
   const [mounted, setMounted] = useState(false);
 
@@ -27,8 +28,11 @@ export default function Home() {
     if (isLoaded) {
       const storageKey = isSignedIn && user ? `usage_${user.id}` : "ghostwriter_usage_anon";
       const currentUsage = parseInt(localStorage.getItem(storageKey) || "0");
+      setIsPro(localStorage.getItem("usage_" + user?.id) === "-999");
       if (currentUsage >= 2) {
         setLimitReached(true);
+      } else {
+        setLimitReached(false);
       }
     }
   }, [isLoaded, isSignedIn, user]);
@@ -77,11 +81,11 @@ export default function Home() {
     }
   };
 
-  const processPayment = async () => {
+  const processPayment = useCallback(async () => {
     // SECURITY CATCH: Don't allow payment if they aren't logged in.
     // (We handle the UI for this in the render method below)
     if (!isSignedIn || !user) {
-      alert("Please sign in to upgrade to the Founder Pass.");
+      localStorage.setItem("pending_purchase", "true");
       return;
     }
 
@@ -103,6 +107,7 @@ export default function Home() {
           // Temporary unlock logic
           localStorage.setItem(`usage_${user.id}`, "-999");
           setLimitReached(false);
+          setIsPro(true);
         },
         prefill: {
           name: user?.fullName || "Founder",
@@ -117,7 +122,15 @@ export default function Home() {
       console.error(err);
       alert("Payment failed to initialize. Please try again.");
     }
-  };
+  }, [isSignedIn, user]);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+    if (localStorage.getItem("pending_purchase") === "true") {
+      processPayment();
+      localStorage.removeItem("pending_purchase");
+    }
+  }, [isLoaded, isSignedIn, processPayment]);
 
   const handleCopy = async () => {
     if (!result) return;
@@ -139,7 +152,7 @@ export default function Home() {
           
           <div className="flex items-center gap-4">
             <span className="hidden sm:inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium tracking-wide text-emerald-300">
-              {limitReached ? "Free Limit Reached" : isSignedIn ? "Pro Intelligence Active" : "Ghostwriter Optimized"}
+              {isPro ? "Pro Intelligence Active" : "Ghostwriter Free"}
             </span>
             
             {/* Show UserButton if logged in, otherwise show a discrete Sign In option */}
@@ -225,14 +238,18 @@ export default function Home() {
             
             {isSignedIn ? (
               <button
+                disabled={isPro}
                 className="rounded-xl bg-emerald-400 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95"
                 onClick={processPayment}
               >
-                Unlock Founder Pass - ₹349/mo
+                {isPro ? "Founder Pass Active" : "Unlock Founder Pass - ₹349/mo"}
               </button>
             ) : (
               <SignInButton mode="modal">
-                <button className="rounded-xl bg-zinc-100 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 active:scale-95">
+                <button
+                  onClick={processPayment}
+                  className="rounded-xl bg-zinc-100 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 active:scale-95"
+                >
                   Unlock Founder Pass - ₹349/mo
                 </button>
               </SignInButton>
