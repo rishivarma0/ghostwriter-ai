@@ -94,7 +94,11 @@ export default function Home() {
       const data = await res.json().catch(() => ({ error: "Invalid server response from /api/razorpay." }));
 
       if (!res.ok || data.error) {
-        alert("Error: " + data.error);
+        const serverError =
+          typeof data?.error === "string" && data.error.trim().length > 0
+            ? data.error
+            : `Payment initialization failed (HTTP ${res.status}).`;
+        alert("Error: " + serverError);
         return;
       }
 
