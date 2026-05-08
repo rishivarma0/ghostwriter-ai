@@ -223,9 +223,8 @@ export default function Home() {
               You've used your 2 free Ghostwriter generations. Upgrade to the **Founder Pass** for unlimited posts, custom brand voices, and priority access.
             </p>
             
-            {/* If they are signed in, show the Pay button. If not, force them to sign in first. */}
             {isSignedIn ? (
-               <button 
+              <button
                 className="rounded-xl bg-emerald-400 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95"
                 onClick={processPayment}
               >
@@ -233,8 +232,8 @@ export default function Home() {
               </button>
             ) : (
               <SignInButton mode="modal">
-                 <button className="rounded-xl bg-zinc-100 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 active:scale-95">
-                  Sign In to Upgrade
+                <button className="rounded-xl bg-zinc-100 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 active:scale-95">
+                  Unlock Founder Pass - ₹349/mo
                 </button>
               </SignInButton>
             )}

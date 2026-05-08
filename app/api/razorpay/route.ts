@@ -6,16 +6,17 @@ const razorpay = new Razorpay({
   key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
   key_secret: process.env.RAZORPAY_KEY_SECRET!, 
 });
+const FOUNDER_PASS_AMOUNT_PAISE = 34900;
 
 export async function POST() {
   // 1. Verify the user is actually signed in
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const options = {
-    amount: 34900, // ₹349.00
+    amount: FOUNDER_PASS_AMOUNT_PAISE,
     currency: "INR",
     receipt: `rcpt_${userId}_${Date.now()}`, // Links receipt to the exact user
   };
