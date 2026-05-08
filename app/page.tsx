@@ -167,7 +167,7 @@ export default function Home() {
               className="rounded-xl bg-emerald-400 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95"
               onClick={() => window.open("https://razorpay.me/@pixelshift", "_blank")}
             >
-              Unlock Founder Pass - ₹399/mo
+              Unlock Founder Pass - ₹349/mo
             </button>
           </div>
         )}
