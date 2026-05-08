@@ -20,7 +20,7 @@ export async function POST() {
     // 1. Verify the user is actually signed in
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Authentication failed: No UserID" }, { status: 401 });
     }
 
     const options = {

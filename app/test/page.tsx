@@ -42,7 +42,7 @@ export default function TestPage() {
             : typeof data?.message === "string" && data.message.trim().length > 0
               ? data.message
               : `Payment initialization failed (HTTP ${res.status}).`;
-        alert("Error: " + serverError);
+        alert("BACKEND ERROR: " + serverError);
         return;
       }
 
@@ -60,8 +60,8 @@ export default function TestPage() {
         name: "Ghostwriter AI",
         description: "Test Founder Pass Payment",
         order_id: data.id,
-        handler: function (response: any) {
-          alert(`Payment Successful! ID: ${response.razorpay_payment_id}`);
+        handler: function () {
+          alert("SUCCESS: Payment recorded locally.");
           localStorage.setItem(`usage_${user.id}`, "-999");
           setIsPro(true);
         },
@@ -109,7 +109,7 @@ export default function TestPage() {
       <div className="mx-auto max-w-5xl px-6 py-10">
         <header className="mb-8 flex items-center justify-between rounded-2xl border border-emerald-500/20 bg-[#0a0f0d]/70 px-6 py-4">
           <h1 className="text-3xl font-semibold tracking-tight">
-            Testing for {user?.firstName || "Founder"}
+            Welcome to the Sandbox, {user?.firstName || "Founder"}!
           </h1>
           {isSignedIn ? (
             <UserButton />
@@ -123,15 +123,14 @@ export default function TestPage() {
         </header>
 
         <section className="rounded-2xl border border-zinc-800 bg-[#090d0b] p-8 text-center">
-          <p className="mb-6 text-sm text-zinc-400">
-            Sandbox for payment + personalization. Current status: {isPro ? "PRO" : "FREE"}
-          </p>
+          <p className="mb-6 text-sm text-zinc-400">Sandbox for payment + personalization testing.</p>
+          {isPro && <p className="mb-6 text-sm font-semibold text-emerald-400">PRO STATUS: ACTIVE</p>}
 
           <button
             onClick={processPayment}
             className="mx-auto block rounded-xl bg-emerald-400 px-10 py-4 text-lg font-bold text-zinc-950 transition hover:bg-emerald-300"
           >
-            Test Payment - ₹349
+            Pay ₹349 (Test Mode)
           </button>
 
           <div className="mt-8 flex items-center justify-center gap-3">
