@@ -1,11 +1,16 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Make the home page and generation API public so anyone can try it
-const isPublicRoute = createRouteMatcher(['/', '/test', '/api/generate', '/sign-in(.*)', '/sign-up(.*)']);
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/test",
+  "/api/razorpay",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+]);
 
-export default clerkMiddleware(async (auth, request) => {
+export default clerkMiddleware((auth, request) => {
   if (!isPublicRoute(request)) {
-    await auth.protect();
+    auth.protect();
   }
 });
 
