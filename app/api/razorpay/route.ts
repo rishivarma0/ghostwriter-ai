@@ -26,7 +26,7 @@ export async function POST() {
     const options = {
       amount: 34900,
       currency: "INR",
-      receipt: `rcpt_${userId}_${Date.now()}`, // Links receipt to the exact user
+      receipt: `rcpt_${userId.slice(-10)}_${Date.now().toString().slice(-8)}`,
     };
 
     const order = await razorpay.orders.create(options);
