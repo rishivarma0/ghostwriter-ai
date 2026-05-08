@@ -91,13 +91,21 @@ export default function Home() {
 
     try {
       const res = await fetch("/api/razorpay", { method: "POST" });
-      const data = await res.json().catch(() => ({ error: "Invalid server response from /api/razorpay." }));
+      const rawBody = await res.text();
+      let data: any = {};
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        data = { error: rawBody || "Invalid server response from /api/razorpay." };
+      }
 
       if (!res.ok || data.error) {
         const serverError =
           typeof data?.error === "string" && data.error.trim().length > 0
             ? data.error
-            : `Payment initialization failed (HTTP ${res.status}).`;
+            : typeof data?.message === "string" && data.message.trim().length > 0
+              ? data.message
+              : `Payment initialization failed (HTTP ${res.status}).`;
         alert("Error: " + serverError);
         return;
       }

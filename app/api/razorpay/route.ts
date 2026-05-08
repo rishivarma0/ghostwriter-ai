@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { auth } from "@clerk/nextjs/server";
 
+export const runtime = "nodejs";
+
 export async function POST() {
   try {
     const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
@@ -31,6 +33,11 @@ export async function POST() {
     return NextResponse.json(order);
   } catch (error: any) {
     console.error("Razorpay Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message =
+      error?.error?.description ||
+      error?.message ||
+      "Payment initialization failed on server.";
+    const statusCode = typeof error?.statusCode === "number" ? error.statusCode : 500;
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
