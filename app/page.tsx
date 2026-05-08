@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { useUser, UserButton, SignInButton } from "@clerk/nextjs";
 
 type Tone = "Provocative" | "Educational" | "Authentic";
 
 const tones: Tone[] = ["Provocative", "Educational", "Authentic"];
 
 export default function Home() {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user, isLoaded } = useUser();
   const [input, setInput] = useState("");
   const [tone, setTone] = useState<Tone>("Provocative");
   const [result, setResult] = useState("");
@@ -21,15 +21,27 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Check usage on load. We use a general key for anonymous users,
+    // and a specific key if they are logged in.
+    if (isLoaded) {
+      const storageKey = isSignedIn && user ? `usage_${user.id}` : "ghostwriter_usage_anon";
+      const currentUsage = parseInt(localStorage.getItem(storageKey) || "0");
+      if (currentUsage >= 2) {
+        setLimitReached(true);
+      }
+    }
+  }, [isLoaded, isSignedIn, user]);
 
   const canGenerate = useMemo(() => input.trim().length > 0 && !loading, [input, loading]);
 
   const handleGenerate = async () => {
     if (!input.trim() || loading) return;
 
-    const currentUsage = parseInt(localStorage.getItem("ghostwriter_usage") || "0");
-    if (!isSignedIn && currentUsage >= 2) {
+    const storageKey = isSignedIn && user ? `usage_${user.id}` : "ghostwriter_usage_anon";
+    const currentUsage = parseInt(localStorage.getItem(storageKey) || "0");
+    
+    if (currentUsage >= 2) {
       setLimitReached(true);
       return; 
     }
@@ -53,19 +65,57 @@ export default function Home() {
         throw new Error(data?.error || "Failed to generate post.");
       }
 
-      const generatedText =
-        data?.result || data?.post || data?.output || data?.text || "No response text returned.";
-
-      setResult(generatedText);
-
-      if (!isSignedIn) {
-        localStorage.setItem("ghostwriter_usage", (currentUsage + 1).toString());
-      }
+      setResult(data?.result || data?.post || data?.output || data?.text || "No text returned.");
+      
+      // Increment usage
+      localStorage.setItem(storageKey, (currentUsage + 1).toString());
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const processPayment = async () => {
+    // SECURITY CATCH: Don't allow payment if they aren't logged in.
+    // (We handle the UI for this in the render method below)
+    if (!isSignedIn || !user) {
+      alert("Please sign in to upgrade to the Founder Pass.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/razorpay", { method: "POST" });
+      const order = await res.json();
+
+      if (order.error) throw new Error(order.error);
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Ghostwriter AI",
+        description: "Unlock Founder Pass",
+        order_id: order.id,
+        handler: function (response: any) {
+          alert(`Payment Successful! ID: ${response.razorpay_payment_id}`);
+          // Temporary unlock logic
+          localStorage.setItem(`usage_${user.id}`, "-999");
+          setLimitReached(false);
+        },
+        prefill: {
+          name: user?.fullName || "Founder",
+          email: user?.primaryEmailAddress?.emailAddress || "",
+        },
+        theme: { color: "#34d399" }, // Emerald 400
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+    } catch (err) {
+      console.error(err);
+      alert("Payment failed to initialize. Please try again.");
     }
   };
 
@@ -76,7 +126,7 @@ export default function Home() {
     setTimeout(() => setCopied(false), 1600);
   };
 
-  if (!mounted) return <div className="min-h-screen bg-[#040706]" />;
+  if (!mounted || !isLoaded) return <div className="min-h-screen bg-[#040706]" />;
 
   return (
     <main className="min-h-screen bg-[#040706] text-zinc-100">
@@ -89,10 +139,19 @@ export default function Home() {
           
           <div className="flex items-center gap-4">
             <span className="hidden sm:inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium tracking-wide text-emerald-300">
-              {isSignedIn ? "Pro Intelligence Active" : "Ghostwriter Optimized"}
+              {limitReached ? "Free Limit Reached" : isSignedIn ? "Pro Intelligence Active" : "Ghostwriter Optimized"}
             </span>
-            {/* FIXED: Removed afterSignOutUrl prop */}
-            <UserButton />
+            
+            {/* Show UserButton if logged in, otherwise show a discrete Sign In option */}
+            {isSignedIn ? (
+              <UserButton />
+            ) : (
+              <SignInButton mode="modal">
+                <button className="text-xs text-zinc-400 hover:text-emerald-400 transition-colors">
+                  Sign In
+                </button>
+              </SignInButton>
+            )}
           </div>
         </header>
 
@@ -154,7 +213,7 @@ export default function Home() {
           </aside>
         </section>
 
-        {limitReached && !isSignedIn && (
+        {limitReached && (
           <div className="mt-8 p-6 rounded-2xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.45)] text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
               <span className="text-2xl">🔥</span>
@@ -163,12 +222,22 @@ export default function Home() {
             <p className="mx-auto mb-6 max-w-lg text-sm leading-relaxed text-zinc-400">
               You've used your 2 free Ghostwriter generations. Upgrade to the **Founder Pass** for unlimited posts, custom brand voices, and priority access.
             </p>
-            <button 
-              className="rounded-xl bg-emerald-400 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95"
-              onClick={() => window.open("https://razorpay.me/@pixelshift", "_blank")}
-            >
-              Unlock Founder Pass - ₹349/mo
-            </button>
+            
+            {/* If they are signed in, show the Pay button. If not, force them to sign in first. */}
+            {isSignedIn ? (
+               <button 
+                className="rounded-xl bg-emerald-400 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95"
+                onClick={processPayment}
+              >
+                Unlock Founder Pass - ₹349/mo
+              </button>
+            ) : (
+              <SignInButton mode="modal">
+                 <button className="rounded-xl bg-zinc-100 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 active:scale-95">
+                  Sign In to Upgrade
+                </button>
+              </SignInButton>
+            )}
           </div>
         )}
 
@@ -200,17 +269,8 @@ export default function Home() {
             </p>
             <p className="mt-1 text-[10px] text-zinc-600">Built with ❤️ by Rishi Varma</p>
           </div>
-          
-          <div className="mb-8 flex flex-wrap justify-center gap-x-8 gap-y-4 text-[10px] uppercase tracking-tighter text-zinc-500">
-            <a href="/privacy" className="transition hover:text-emerald-400">Privacy</a>
-            <a href="/terms" className="transition hover:text-emerald-400">Terms</a>
-            <a href="/refunds" className="transition hover:text-emerald-400">Refunds</a>
-            <a href="/shipping" className="transition hover:text-emerald-400">Shipping</a>
-            <a href="mailto:pixelshift.hq@gmail.com" className="underline underline-offset-4 transition hover:text-emerald-400">Support: pixelshift.hq@gmail.com</a>
-          </div>
-          
           <p className="mx-auto max-w-md text-[9px] leading-relaxed text-zinc-700 italic">
-            Ghostwriter AI is a product of Pixelshift. Payments are processed securely via Razorpay under the legal name Rishi Varma. Digital access is provisioned within 24 hours of payment.
+            Ghostwriter AI is a product of Pixelshift. Payments are processed securely via Razorpay under the legal name Rishi Varma.
           </p>
         </footer>
       </div>

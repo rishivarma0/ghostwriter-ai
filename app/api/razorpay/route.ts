@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
+import { auth } from "@clerk/nextjs/server";
 
 const razorpay = new Razorpay({
   key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
@@ -7,10 +8,16 @@ const razorpay = new Razorpay({
 });
 
 export async function POST() {
+  // 1. Verify the user is actually signed in
+  const { userId } = auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const options = {
     amount: 34900, // ₹349.00
     currency: "INR",
-    receipt: `receipt_${Date.now()}`, // Unique receipt ID
+    receipt: `rcpt_${userId}_${Date.now()}`, // Links receipt to the exact user
   };
 
   try {
