@@ -24,3 +24,4 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to load account." }, { status: 500 });
   }
 }
+  

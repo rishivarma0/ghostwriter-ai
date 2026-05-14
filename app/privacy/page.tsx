@@ -1,31 +1,15 @@
-import Link from "next/link";
-
-export default function PrivacyPolicy() {
+export default function Privacy() {
   return (
-    <main className="min-h-screen bg-[#040706] px-6 py-12 text-zinc-100 lg:px-10">
-      <div className="mx-auto max-w-3xl">
-        <Link href="/" className="mb-8 inline-flex items-center text-sm font-medium text-emerald-400 hover:text-emerald-300">
-          &larr; Back to Ghostwriter
-        </Link>
-        <h1 className="mb-8 text-3xl font-bold tracking-tight">Privacy Policy</h1>
-        <div className="space-y-6 text-sm leading-relaxed text-zinc-400">
-          <p>Last updated: {new Date().toLocaleDateString()}</p>
-          <p>
-            At Ghostwriter AI (a Pixelshift project), we prioritize your privacy. This policy outlines how we handle your data when you use our services.
-          </p>
-          <h2 className="text-xl font-semibold text-zinc-100">1. Data Collection</h2>
-          <p>
-            We collect basic account information (like your email address) when you sign up for a Pro account. We do not sell your personal data to third parties.
-          </p>
-          <h2 className="text-xl font-semibold text-zinc-100">2. AI Processing</h2>
-          <p>
-            The text prompts you submit are sent securely via API to Groq Cloud for processing. We do not permanently store your raw brain-dumps in our database after the session ends.
-          </p>
-          <h2 className="text-xl font-semibold text-zinc-100">3. Contact</h2>
-          <p>
-            For any privacy-related questions, contact us at <a href="mailto:pixelshift.hq@gmail.com" className="text-emerald-400">pixelshift.hq@gmail.com</a>.
-          </p>
-        </div>
+    <main className="mx-auto max-w-3xl px-6 py-20 text-zinc-300">
+      <a href="/" className="text-emerald-400 hover:underline mb-8 block">&larr; Back to Home</a>
+      <h1 className="text-3xl font-bold text-zinc-100 mb-6">Privacy Policy</h1>
+      <div className="space-y-4 text-sm leading-relaxed">
+        <p>Last updated: May 14, 2026</p>
+        <p>We respect your privacy and are committed to protecting your personal data.</p>
+        <h2 className="text-xl font-semibold text-zinc-100 mt-6">Data Collection</h2>
+        <p>We collect your email address and profile information via standard secure authentication (Clerk). Payment information is securely handled by our payment partner (Razorpay). We do not store your credit card details on our servers.</p>
+        <h2 className="text-xl font-semibold text-zinc-100 mt-6">Usage of Data</h2>
+        <p>Your AI prompts may be temporarily processed to generate your content but are not sold to third parties.</p>
       </div>
     </main>
   );

@@ -102,8 +102,6 @@ export default function Home() {
   };
 
   const processPayment = useCallback(async () => {
-    // SECURITY CATCH: Don't allow payment if they aren't logged in.
-    // (We handle the UI for this in the render method below)
     if (!isSignedIn || !user) {
       localStorage.setItem("pending_purchase", "true");
       return;
@@ -185,7 +183,7 @@ export default function Home() {
           name: user?.fullName || "Founder",
           email: user?.primaryEmailAddress?.emailAddress || "",
         },
-        theme: { color: "#34d399" }, // Emerald 400
+        theme: { color: "#34d399" },
       };
 
       const paymentObject = new window.Razorpay(options);
@@ -219,20 +217,19 @@ export default function Home() {
         <header className="mb-8 flex items-center justify-between rounded-2xl border border-emerald-500/20 bg-[#0a0f0d]/70 px-6 py-4 shadow-[0_0_0_1px_rgba(16,185,129,0.08),0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur">
           <div className="flex flex-col">
             <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Ghostwriter v1.0</h1>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">Founder Series</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-widest text-zinc-500">Founder Series</p>
           </div>
           
           <div className="flex items-center gap-4">
-            <span className="hidden sm:inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium tracking-wide text-emerald-300">
+            <span className="hidden rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium tracking-wide text-emerald-300 sm:inline-flex">
               {isPro ? "Pro Intelligence Active" : "Ghostwriter Free"}
             </span>
             
-            {/* Show UserButton if logged in, otherwise show a discrete Sign In option */}
             {isSignedIn ? (
               <UserButton />
             ) : (
               <SignInButton mode="modal">
-                <button className="text-xs text-zinc-400 hover:text-emerald-400 transition-colors">
+                <button className="text-xs text-zinc-400 transition-colors hover:text-emerald-400">
                   Sign In
                 </button>
               </SignInButton>
@@ -241,7 +238,7 @@ export default function Home() {
         </header>
 
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl border border-zinc-800 bg-[#090d0b] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] lg:col-span-2">
+          <div className="col-span-1 rounded-2xl border border-zinc-800 bg-[#090d0b] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] lg:col-span-2">
             <label className="mb-3 block text-sm font-medium text-zinc-400">Brain Dump your thoughts...</label>
             <textarea
               value={input}
@@ -275,7 +272,7 @@ export default function Home() {
                 type="button"
                 onClick={handleGenerate}
                 disabled={!canGenerate}
-                className="mt-8 w-full rounded-xl bg-emerald-400 px-4 py-4 text-sm font-bold text-zinc-950 transition-all hover:bg-emerald-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                className="mt-8 w-full rounded-xl bg-emerald-400 px-4 py-4 text-sm font-bold text-zinc-950 transition-all hover:scale-[1.02] hover:bg-emerald-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
               >
                 {loading ? "Thinking..." : "Generate Post"}
               </button>
@@ -299,7 +296,7 @@ export default function Home() {
         </section>
 
         {limitReached && (
-          <div className="mt-8 p-6 rounded-2xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.45)] text-center">
+          <div className="mt-8 rounded-2xl border border-emerald-500/30 bg-[#090d0b] p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
               <span className="text-2xl">🔥</span>
             </div>
@@ -348,18 +345,26 @@ export default function Home() {
           </div>
 
           <div className="min-h-[200px] whitespace-pre-wrap rounded-xl border border-zinc-800 bg-[#040706] p-6 text-[15px] leading-relaxed text-zinc-300 selection:bg-emerald-500/30">
-            {result || <span className="text-zinc-600 italic">Your viral-ready LinkedIn post will appear here...</span>}
+            {result || <span className="italic text-zinc-600">Your viral-ready LinkedIn post will appear here...</span>}
           </div>
         </section>
 
         <footer className="mt-20 border-t border-zinc-900 py-12 text-center">
+          {/* COMPLIANCE LINKS FOR RAZORPAY */}
+          <div className="mb-10 flex flex-wrap justify-center gap-6 text-sm text-zinc-400">
+            <a href="/terms" className="transition-colors hover:text-emerald-400 hover:underline">Terms & Conditions</a>
+            <a href="/privacy" className="transition-colors hover:text-emerald-400 hover:underline">Privacy Policy</a>
+            <a href="/refund-policy" className="transition-colors hover:text-emerald-400 hover:underline">Refund & Cancellation</a>
+            <a href="/contact" className="transition-colors hover:text-emerald-400 hover:underline">Contact Us</a>
+          </div>
+
           <div className="mb-6">
             <p className="text-xs font-medium uppercase tracking-widest text-zinc-500">
               A <span className="text-emerald-400">Pixelshift</span> Project
             </p>
             <p className="mt-1 text-[10px] text-zinc-600">Built with ❤️ by Rishi Varma</p>
           </div>
-          <p className="mx-auto max-w-md text-[9px] leading-relaxed text-zinc-700 italic">
+          <p className="mx-auto max-w-md text-[9px] italic leading-relaxed text-zinc-700">
             Ghostwriter AI is a product of Pixelshift. Payments are processed securely via Razorpay under the legal name Rishi Varma.
           </p>
         </footer>

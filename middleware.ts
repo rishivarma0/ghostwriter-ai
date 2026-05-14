@@ -4,8 +4,8 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/privacy(.*)",
   "/terms(.*)",
-  "/refunds(.*)",
-  "/shipping(.*)",
+  "/refund-policy(.*)",
+  "/contact(.*)",
   // Handlers return JSON 401 instead of an HTML redirect for `fetch`.
   "/api/generate",
   "/api/user/state",
