@@ -253,7 +253,34 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* 1. THE METHOD */}
+        <section className="mt-12 py-12 mb-12">
+          <div className="text-center mb-12">
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-500">The Method</h2>
+            <p className="mt-2 text-2xl font-semibold text-zinc-200">From messy thoughts to viral posts</p>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="relative p-6 text-center">
+              <div className="mb-4 text-4xl">🧠</div>
+              <h4 className="mb-2 font-bold text-zinc-100">1. Brain Dump</h4>
+              <p className="text-sm text-zinc-500 leading-relaxed">Paste your raw notes, voice memos, or half-baked ideas into the editor.</p>
+            </div>
+            <div className="relative p-6 text-center">
+              <div className="mb-4 text-4xl">🎭</div>
+              <h4 className="mb-2 font-bold text-zinc-100">2. Pick a Tone</h4>
+              <p className="text-sm text-zinc-500 leading-relaxed">Choose between Provocative, Educational, or Authentic vibes.</p>
+            </div>
+            <div className="relative p-6 text-center">
+              <div className="mb-4 text-4xl">🚀</div>
+              <h4 className="mb-2 font-bold text-zinc-100">3. Go Viral</h4>
+              <p className="text-sm text-zinc-500 leading-relaxed">Get a structured LinkedIn post ready to copy, paste, and engage.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. DUMP AREA */}
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-12">
           <div className="col-span-1 rounded-2xl border border-zinc-800 bg-[#090d0b] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] lg:col-span-2">
             <label className="mb-3 block text-sm font-medium text-zinc-400">Brain Dump your thoughts...</label>
             <textarea
@@ -311,8 +338,9 @@ export default function Home() {
           </aside>
         </section>
 
+        {/* 3. FOUNDER PASS (UPDATED PRICE) */}
         {limitReached && (
-          <div className="mt-12 overflow-hidden rounded-3xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+          <div className="mt-8 overflow-hidden rounded-3xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.6)] mb-12">
             <div className="bg-emerald-500/5 px-6 py-10 text-center backdrop-blur-sm">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                 <span className="text-3xl">🚀</span>
@@ -344,7 +372,7 @@ export default function Home() {
                     className="group relative flex items-center gap-2 rounded-xl bg-emerald-400 px-10 py-4 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={processPayment}
                   >
-                    {isPro ? "Founder Pass Active" : "Get Founder Pass — ₹349/mo"}
+                    {isPro ? "Founder Pass Active" : "Get Founder Pass — ₹249/mo"}
                   </button>
                   <p className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-zinc-600">
                     🔒 Secure checkout via Razorpay
@@ -361,7 +389,8 @@ export default function Home() {
           </div>
         )}
 
-        <section className="mt-6 rounded-2xl border border-zinc-800 bg-[#090d0b] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+        {/* 4. GENERATED AREA */}
+        <section className="rounded-2xl border border-zinc-800 bg-[#090d0b] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.45)] mb-24">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
@@ -382,31 +411,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-24 py-12">
-          <div className="text-center mb-12">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-500">The Method</h2>
-            <p className="mt-2 text-2xl font-semibold text-zinc-200">From messy thoughts to viral posts</p>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="relative p-6 text-center">
-              <div className="mb-4 text-4xl">🧠</div>
-              <h4 className="mb-2 font-bold text-zinc-100">1. Brain Dump</h4>
-              <p className="text-sm text-zinc-500 leading-relaxed">Paste your raw notes, voice memos, or half-baked ideas into the editor.</p>
-            </div>
-            <div className="relative p-6 text-center">
-              <div className="mb-4 text-4xl">🎭</div>
-              <h4 className="mb-2 font-bold text-zinc-100">2. Pick a Tone</h4>
-              <p className="text-sm text-zinc-500 leading-relaxed">Choose between Provocative, Educational, or Authentic vibes.</p>
-            </div>
-            <div className="relative p-6 text-center">
-              <div className="mb-4 text-4xl">🚀</div>
-              <h4 className="mb-2 font-bold text-zinc-100">3. Go Viral</h4>
-              <p className="text-sm text-zinc-500 leading-relaxed">Get a structured LinkedIn post ready to copy, paste, and engage.</p>
-            </div>
-          </div>
-        </section>
-
+        {/* 5. TRUST & FAQ AREA */}
         <section className="mt-12 rounded-3xl border border-zinc-900 bg-zinc-950/50 p-8 md:p-12 mb-12">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
             <div>
@@ -414,11 +419,7 @@ export default function Home() {
               <div className="space-y-6">
                 <div>
                   <p className="text-sm font-bold text-emerald-400">Is this a subscription?</p>
-                  <p className="text-sm text-zinc-500 mt-1">Yes, the Founder Pass is a monthly subscription. You can cancel anytime directly from your profile dashboard.</p>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-emerald-400">What is the Refund Policy?</p>
-                  <p className="text-sm text-zinc-500 mt-1">We offer a 7-day no-questions-asked refund. Check our Refund Policy page for full details.</p>
+                  <p className="text-sm text-zinc-500 mt-1">Yes, the Founder Pass is a monthly subscription. You can cancel anytime directly from your profile dashboard with a single click.</p>
                 </div>
               </div>
             </div>
