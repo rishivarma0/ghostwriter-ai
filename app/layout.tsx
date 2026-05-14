@@ -30,6 +30,8 @@ export default function RootLayout({
             src="https://checkout.razorpay.com/v1/checkout.js"
             strategy="beforeInteractive"
           />
+          {/* Simple Analytics Script */}
+          <Script src="https://scripts.simpleanalyticscdn.com/latest.js" />
         </body>
       </html>
     </ClerkProvider>
