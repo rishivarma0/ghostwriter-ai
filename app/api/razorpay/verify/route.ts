@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { connectDb } from "@/lib/db";
 import User from "@/lib/models/User";
+import { resolveClerkUserId } from "@/lib/resolve-clerk-user-id";
 
 export const runtime = "nodejs";
 
@@ -25,7 +26,7 @@ function timingSafeEqualHex(a: string, b: string): boolean {
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
+    const userId = await resolveClerkUserId(req);
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -55,10 +56,11 @@ export async function POST(req: Request) {
     }
 
     await connectDb();
-    const clerkUser = await currentUser();
+    const client = await clerkClient();
+    const clerkUser = await client.users.getUser(userId);
     const email =
-      clerkUser?.primaryEmailAddress?.emailAddress ||
-      clerkUser?.emailAddresses?.[0]?.emailAddress ||
+      clerkUser.primaryEmailAddress?.emailAddress ||
+      clerkUser.emailAddresses?.[0]?.emailAddress ||
       "";
 
     await User.findOneAndUpdate(

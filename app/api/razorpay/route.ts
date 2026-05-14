@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { auth } from "@clerk/nextjs/server";
+import { resolveClerkUserId } from "@/lib/resolve-clerk-user-id";
 
 export const runtime = "nodejs";
 
@@ -21,7 +21,7 @@ function razorpayErrorStatus(error: unknown): number {
   return 500;
 }
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const keyId = process.env.RAZORPAY_KEY_ID?.trim();
     const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
@@ -37,7 +37,7 @@ export async function POST() {
       key_secret: keySecret,
     });
 
-    const { userId } = await auth();
+    const userId = await resolveClerkUserId(req);
     if (!userId) {
       return NextResponse.json({ error: "Authentication failed: No UserID" }, { status: 401 });
     }

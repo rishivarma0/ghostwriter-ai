@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { useUser, UserButton, SignInButton } from "@clerk/nextjs";
+import { useUser, UserButton, SignInButton, useAuth } from "@clerk/nextjs";
 import { useIsClient } from "@/lib/use-is-client";
 import { parseRazorpayOrderJson } from "@/lib/razorpay-order";
 import type { RazorpaySuccessResponse } from "@/types/razorpay-checkout";
@@ -13,6 +13,7 @@ const tones: Tone[] = ["Provocative", "Educational", "Authentic"];
 export default function Home() {
   const isClient = useIsClient();
   const { isSignedIn, user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const [input, setInput] = useState("");
   const [tone, setTone] = useState<Tone>("Provocative");
   const [result, setResult] = useState("");
@@ -109,7 +110,15 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch("/api/razorpay", { method: "POST" });
+      const token = await getToken().catch(() => null);
+      const authHeaders: Record<string, string> = {};
+      if (token) authHeaders.Authorization = `Bearer ${token}`;
+
+      const res = await fetch("/api/razorpay", {
+        method: "POST",
+        headers: authHeaders,
+        credentials: "include",
+      });
       const rawBody = await res.text();
       const data = parseRazorpayOrderJson(rawBody);
 
@@ -148,9 +157,16 @@ export default function Home() {
         description: "Unlock Founder Pass",
         order_id: data.id,
         handler: async function (response: RazorpaySuccessResponse) {
+          const sessionJwt = await getToken().catch(() => null);
+          const verifyAuthHeaders: Record<string, string> = {
+            "Content-Type": "application/json",
+          };
+          if (sessionJwt) verifyAuthHeaders.Authorization = `Bearer ${sessionJwt}`;
+
           const verifyRes = await fetch("/api/razorpay/verify", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: verifyAuthHeaders,
+            credentials: "include",
             body: JSON.stringify({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -178,7 +194,7 @@ export default function Home() {
       const message = err instanceof Error ? err.message : String(err);
       alert("Error: " + message);
     }
-  }, [isSignedIn, user]);
+  }, [isSignedIn, user, getToken]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
