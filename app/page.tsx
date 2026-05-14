@@ -215,9 +215,25 @@ export default function Home() {
     <main className="min-h-screen bg-[#040706] text-zinc-100">
       <div className="mx-auto max-w-7xl px-6 py-10 lg:px-10">
         <header className="mb-8 flex items-center justify-between rounded-2xl border border-emerald-500/20 bg-[#0a0f0d]/70 px-6 py-4 shadow-[0_0_0_1px_rgba(16,185,129,0.08),0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur">
-          <div className="flex flex-col">
-            <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Ghostwriter v1.0</h1>
-            <p className="mt-0.5 text-[10px] uppercase tracking-widest text-zinc-500">Founder Series</p>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.1)] overflow-hidden">
+              <img 
+                src="/logo.svg" 
+                alt="Ghostwriter AI Logo" 
+                className="h-8 w-8 object-contain drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]"
+              />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-xl bg-emerald-400/10 opacity-20"></span>
+            </div>
+
+            <div className="flex flex-col">
+              <h1 className="text-xl font-bold tracking-tight text-white md:text-2xl">
+                Ghostwriter <span className="text-emerald-400">AI</span>
+              </h1>
+              <p className="mt-0.5 text-[10px] uppercase tracking-widest text-zinc-500">
+                Founder Series
+              </p>
+            </div>
           </div>
           
           <div className="flex items-center gap-4">
@@ -350,7 +366,6 @@ export default function Home() {
         </section>
 
         <footer className="mt-20 border-t border-zinc-900 py-12 text-center">
-          {/* COMPLIANCE LINKS FOR RAZORPAY */}
           <div className="mb-10 flex flex-wrap justify-center gap-6 text-sm text-zinc-400">
             <a href="/terms" className="transition-colors hover:text-emerald-400 hover:underline">Terms & Conditions</a>
             <a href="/privacy" className="transition-colors hover:text-emerald-400 hover:underline">Privacy Policy</a>
