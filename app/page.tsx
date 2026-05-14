@@ -2,12 +2,16 @@
 
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useUser, UserButton, SignInButton } from "@clerk/nextjs";
+import { useIsClient } from "@/lib/use-is-client";
+import { parseRazorpayOrderJson } from "@/lib/razorpay-order";
+import type { RazorpaySuccessResponse } from "@/types/razorpay-checkout";
 
 type Tone = "Provocative" | "Educational" | "Authentic";
 
 const tones: Tone[] = ["Provocative", "Educational", "Authentic"];
 
 export default function Home() {
+  const isClient = useIsClient();
   const { isSignedIn, user, isLoaded } = useUser();
   const [input, setInput] = useState("");
   const [tone, setTone] = useState<Tone>("Provocative");
@@ -15,46 +19,64 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [limitReached, setLimitReached] = useState(false);
-  const [isPro, setIsPro] = useState(false);
-  
-  const [mounted, setMounted] = useState(false);
+  const [accountState, setAccountState] = useState<{
+    generationCount: number;
+    isPro: boolean;
+  } | null>(null);
+  const [accountStateVersion, setAccountStateVersion] = useState(0);
 
   useEffect(() => {
-    setMounted(true);
-    
-    // Check usage on load. We use a general key for anonymous users,
-    // and a specific key if they are logged in.
-    if (isLoaded) {
-      const storageKey = isSignedIn && user ? `usage_${user.id}` : "ghostwriter_usage_anon";
-      const currentUsage = parseInt(localStorage.getItem(storageKey) || "0");
-      setIsPro(localStorage.getItem("usage_" + user?.id) === "-999");
-      if (currentUsage >= 2) {
-        setLimitReached(true);
-      } else {
-        setLimitReached(false);
+    if (!isLoaded || !isSignedIn) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/user/state");
+        if (cancelled) return;
+        if (!res.ok) {
+          setAccountState(null);
+          return;
+        }
+        const data = (await res.json()) as { generationCount?: number; isPro?: boolean };
+        if (cancelled) return;
+        setAccountState({
+          generationCount: typeof data.generationCount === "number" ? data.generationCount : 0,
+          isPro: Boolean(data.isPro),
+        });
+      } catch {
+        if (!cancelled) setAccountState(null);
       }
-    }
-  }, [isLoaded, isSignedIn, user]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isSignedIn, accountStateVersion]);
 
-  const canGenerate = useMemo(() => input.trim().length > 0 && !loading, [input, loading]);
+  const { limitReached, isPro } = useMemo(() => {
+    if (!isClient || !isLoaded || !isSignedIn || !accountState) {
+      return { limitReached: false, isPro: false };
+    }
+    return {
+      limitReached: !accountState.isPro && accountState.generationCount >= 3,
+      isPro: accountState.isPro,
+    };
+  }, [isClient, isLoaded, isSignedIn, accountState]);
+
+  const canGenerate = useMemo(
+    () => input.trim().length > 0 && !loading && isSignedIn,
+    [input, loading, isSignedIn],
+  );
 
   const handleGenerate = async () => {
     if (!input.trim() || loading) return;
-
-    const storageKey = isSignedIn && user ? `usage_${user.id}` : "ghostwriter_usage_anon";
-    const currentUsage = parseInt(localStorage.getItem(storageKey) || "0");
-    
-    if (currentUsage >= 2) {
-      setLimitReached(true);
-      return; 
+    if (!isSignedIn) {
+      setError("Sign in to generate posts.");
+      return;
     }
 
     setLoading(true);
     setError("");
     setResult("");
     setCopied(false);
-    setLimitReached(false); 
 
     try {
       const response = await fetch("/api/generate", {
@@ -70,10 +92,7 @@ export default function Home() {
       }
 
       setResult(data?.result || data?.post || data?.output || data?.text || "No text returned.");
-      
-      // Increment usage
-      localStorage.setItem(storageKey, (currentUsage + 1).toString());
-
+      setAccountStateVersion((v) => v + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -92,25 +111,29 @@ export default function Home() {
     try {
       const res = await fetch("/api/razorpay", { method: "POST" });
       const rawBody = await res.text();
-      let data: any = {};
-      try {
-        data = rawBody ? JSON.parse(rawBody) : {};
-      } catch {
-        data = { error: rawBody || "Invalid server response from /api/razorpay." };
-      }
+      const data = parseRazorpayOrderJson(rawBody);
 
       if (!res.ok || data.error) {
+        const e = data.error;
         const serverError =
-          typeof data?.error === "string" && data.error.trim().length > 0
-            ? data.error
-            : typeof data?.message === "string" && data.message.trim().length > 0
-              ? data.message
-              : `Payment initialization failed (HTTP ${res.status}).`;
+          typeof e === "string" && e.trim().length > 0
+            ? e
+            : typeof e === "object" && e !== null && "description" in e
+              ? String((e as { description?: string }).description || "").trim() ||
+                `Payment initialization failed (HTTP ${res.status}).`
+              : typeof data.message === "string" && data.message.trim().length > 0
+                ? data.message
+                : `Payment initialization failed (HTTP ${res.status}).`;
         alert("Error: " + serverError);
         return;
       }
 
-      if (!(window as any).Razorpay) {
+      if (!data.id || typeof data.amount !== "number" || !data.currency) {
+        alert("Error: Invalid order response from server.");
+        return;
+      }
+
+      if (!window.Razorpay) {
         throw new Error("Razorpay SDK failed to load. Please refresh and try again.");
       }
       if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
@@ -124,12 +147,23 @@ export default function Home() {
         name: "Ghostwriter AI",
         description: "Unlock Founder Pass",
         order_id: data.id,
-        handler: function (response: any) {
+        handler: async function (response: RazorpaySuccessResponse) {
+          const verifyRes = await fetch("/api/razorpay/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
+          const verifyJson = (await verifyRes.json().catch(() => ({}))) as { error?: string };
+          if (!verifyRes.ok) {
+            alert("Error: " + (verifyJson.error || "Could not verify payment on the server."));
+            return;
+          }
           alert(`Payment Successful! ID: ${response.razorpay_payment_id}`);
-          // Temporary unlock logic
-          localStorage.setItem(`usage_${user.id}`, "-999");
-          setLimitReached(false);
-          setIsPro(true);
+          setAccountStateVersion((v) => v + 1);
         },
         prefill: {
           name: user?.fullName || "Founder",
@@ -138,10 +172,9 @@ export default function Home() {
         theme: { color: "#34d399" }, // Emerald 400
       };
 
-      const paymentObject = new (window as any).Razorpay(options);
+      const paymentObject = new window.Razorpay(options);
       paymentObject.open();
     } catch (err) {
-      console.error(err);
       const message = err instanceof Error ? err.message : String(err);
       alert("Error: " + message);
     }
@@ -162,7 +195,7 @@ export default function Home() {
     setTimeout(() => setCopied(false), 1600);
   };
 
-  if (!mounted || !isLoaded) return <div className="min-h-screen bg-[#040706]" />;
+  if (!isClient || !isLoaded) return <div className="min-h-screen bg-[#040706]" />;
 
   return (
     <main className="min-h-screen bg-[#040706] text-zinc-100">
@@ -254,9 +287,11 @@ export default function Home() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
               <span className="text-2xl">🔥</span>
             </div>
-            <h3 className="mb-2 text-xl font-bold text-zinc-100">You're on fire!</h3>
+            <h3 className="mb-2 text-xl font-bold text-zinc-100">{"You're on fire!"}</h3>
             <p className="mx-auto mb-6 max-w-lg text-sm leading-relaxed text-zinc-400">
-              You've used your 2 free Ghostwriter generations. Upgrade to the **Founder Pass** for unlimited posts, custom brand voices, and priority access.
+              {
+                "You've used your 3 free Ghostwriter generations. Upgrade to the Founder Pass for unlimited posts, custom brand voices, and priority access."
+              }
             </p>
             
             {isSignedIn ? (

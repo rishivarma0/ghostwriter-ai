@@ -4,12 +4,32 @@ import { auth } from "@clerk/nextjs/server";
 
 export const runtime = "nodejs";
 
+function razorpayErrorMessage(error: unknown): string {
+  if (error && typeof error === "object" && "error" in error) {
+    const inner = (error as { error?: { description?: string } }).error;
+    if (inner?.description) return inner.description;
+  }
+  if (error instanceof Error) return error.message;
+  return "Payment initialization failed on server.";
+}
+
+function razorpayErrorStatus(error: unknown): number {
+  if (error && typeof error === "object" && "statusCode" in error) {
+    const code = (error as { statusCode?: unknown }).statusCode;
+    if (typeof code === "number") return code;
+  }
+  return 500;
+}
+
 export async function POST() {
   try {
-    const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const keyId = process.env.RAZORPAY_KEY_ID?.trim();
+    const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
     if (!keyId || !keySecret) {
-      throw new Error("Razorpay keys are not configured on the server.");
+      return NextResponse.json(
+        { error: "Razorpay keys are not configured (set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET)." },
+        { status: 500 },
+      );
     }
 
     const razorpay = new Razorpay({
@@ -17,7 +37,6 @@ export async function POST() {
       key_secret: keySecret,
     });
 
-    // 1. Verify the user is actually signed in
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Authentication failed: No UserID" }, { status: 401 });
@@ -31,13 +50,10 @@ export async function POST() {
 
     const order = await razorpay.orders.create(options);
     return NextResponse.json(order);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Razorpay Error:", error);
-    const message =
-      error?.error?.description ||
-      error?.message ||
-      "Payment initialization failed on server.";
-    const statusCode = typeof error?.statusCode === "number" ? error.statusCode : 500;
+    const message = razorpayErrorMessage(error);
+    const statusCode = razorpayErrorStatus(error);
     return NextResponse.json({ error: message }, { status: statusCode });
   }
 }

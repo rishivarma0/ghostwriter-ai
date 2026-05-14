@@ -2,15 +2,26 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher([
   "/",
-  "/test",
-  "/api/razorpay",
+  "/privacy(.*)",
+  "/terms(.*)",
+  "/refunds(.*)",
+  "/shipping(.*)",
+  // Handlers return JSON 401 instead of an HTML redirect for `fetch`.
+  "/api/generate",
+  "/api/user/state",
+  // Payment verify: handler returns JSON 401; avoids HTML redirect on `fetch`.
+  "/api/razorpay/verify",
+  // Order creation: public in middleware so the route runs; handler still enforces auth().
+  /^\/api\/razorpay$/,
+  // Webhooks: Razorpay server-to-server (no Clerk session).
+  /^\/api\/razorpay\/webhook/,
   "/sign-in(.*)",
   "/sign-up(.*)",
 ]);
 
-export default clerkMiddleware((auth, request) => {
+export default clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
-    auth.protect();
+    await auth.protect();
   }
 });
 

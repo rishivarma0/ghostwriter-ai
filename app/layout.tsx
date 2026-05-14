@@ -7,8 +7,12 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Ghostwriter AI | Viral LinkedIn Posts in Seconds",
+  metadataBase: new URL("https://ghostwriterai.me"),
+  title: "Ghostwriter AI",
   description: "Turn your messy brain-dumps into viral LinkedIn posts optimized for engagement.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
