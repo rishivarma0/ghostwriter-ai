@@ -176,8 +176,10 @@ export default function Home() {
             alert("Error: " + (verifyJson.error || "Could not verify payment on the server."));
             return;
           }
-          alert(`Payment Successful! ID: ${response.razorpay_payment_id}`);
+          
+          // Redirect to the success page instead of an alert
           setAccountStateVersion((v) => v + 1);
+          window.location.href = "/success";
         },
         prefill: {
           name: user?.fullName || "Founder",
@@ -338,7 +340,7 @@ export default function Home() {
           </aside>
         </section>
 
-        {/* 3. FOUNDER PASS (UPDATED PRICE) */}
+        {/* 3. FOUNDER PASS */}
         {limitReached && (
           <div className="mt-8 overflow-hidden rounded-3xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.6)] mb-12">
             <div className="bg-emerald-500/5 px-6 py-10 text-center backdrop-blur-sm">
