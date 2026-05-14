@@ -312,35 +312,52 @@ export default function Home() {
         </section>
 
         {limitReached && (
-          <div className="mt-8 rounded-2xl border border-emerald-500/30 bg-[#090d0b] p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
-              <span className="text-2xl">🔥</span>
+          <div className="mt-12 overflow-hidden rounded-3xl border border-emerald-500/30 bg-[#090d0b] shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+            <div className="bg-emerald-500/5 px-6 py-10 text-center backdrop-blur-sm">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                <span className="text-3xl">🚀</span>
+              </div>
+              <h3 className="mb-2 text-2xl font-bold text-zinc-100">Unlock the Founder Pass</h3>
+              <p className="mx-auto mb-8 max-w-lg text-sm leading-relaxed text-zinc-400">
+                You've hit the free limit. Join our early-bird founders to get unlimited access and shape the future of Ghostwriter.
+              </p>
+
+              <div className="mb-10 grid grid-cols-1 gap-4 text-left md:grid-cols-3 max-w-3xl mx-auto">
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 transition-colors hover:border-emerald-500/30">
+                  <p className="text-sm font-bold text-emerald-400">♾️ Unlimited Posts</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">Break the 3-post limit and generate content whenever inspiration strikes.</p>
+                </div>
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 transition-colors hover:border-emerald-500/30">
+                  <p className="text-sm font-bold text-emerald-400">⚡ Priority Brain</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">Faster generation speeds and access to our most creative AI models.</p>
+                </div>
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 transition-colors hover:border-emerald-500/30">
+                  <p className="text-sm font-bold text-emerald-400">🛠️ Custom Voice</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">Coming Soon: Train the AI to write exactly like you, using your past posts.</p>
+                </div>
+              </div>
+              
+              {isSignedIn ? (
+                <div className="flex flex-col items-center gap-4">
+                  <button
+                    disabled={isPro}
+                    className="group relative flex items-center gap-2 rounded-xl bg-emerald-400 px-10 py-4 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={processPayment}
+                  >
+                    {isPro ? "Founder Pass Active" : "Get Founder Pass — ₹349/mo"}
+                  </button>
+                  <p className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-zinc-600">
+                    🔒 Secure checkout via Razorpay
+                  </p>
+                </div>
+              ) : (
+                <SignInButton mode="modal">
+                  <button className="rounded-xl bg-zinc-100 px-10 py-4 font-bold text-zinc-950 transition-all hover:scale-105 active:scale-95">
+                    Sign in to Upgrade
+                  </button>
+                </SignInButton>
+              )}
             </div>
-            <h3 className="mb-2 text-xl font-bold text-zinc-100">{"You're on fire!"}</h3>
-            <p className="mx-auto mb-6 max-w-lg text-sm leading-relaxed text-zinc-400">
-              {
-                "You've used your 3 free Ghostwriter generations. Upgrade to the Founder Pass for unlimited posts, custom brand voices, and priority access."
-              }
-            </p>
-            
-            {isSignedIn ? (
-              <button
-                disabled={isPro}
-                className="rounded-xl bg-emerald-400 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 hover:bg-emerald-300 active:scale-95"
-                onClick={processPayment}
-              >
-                {isPro ? "Founder Pass Active" : "Unlock Founder Pass - ₹349/mo"}
-              </button>
-            ) : (
-              <SignInButton mode="modal">
-                <button
-                  onClick={processPayment}
-                  className="rounded-xl bg-zinc-100 px-8 py-3 font-bold text-zinc-950 transition-all hover:scale-105 active:scale-95"
-                >
-                  Unlock Founder Pass - ₹349/mo
-                </button>
-              </SignInButton>
-            )}
           </div>
         )}
 
@@ -365,7 +382,60 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="mt-20 border-t border-zinc-900 py-12 text-center">
+        <section className="mt-24 py-12">
+          <div className="text-center mb-12">
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-500">The Method</h2>
+            <p className="mt-2 text-2xl font-semibold text-zinc-200">From messy thoughts to viral posts</p>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="relative p-6 text-center">
+              <div className="mb-4 text-4xl">🧠</div>
+              <h4 className="mb-2 font-bold text-zinc-100">1. Brain Dump</h4>
+              <p className="text-sm text-zinc-500 leading-relaxed">Paste your raw notes, voice memos, or half-baked ideas into the editor.</p>
+            </div>
+            <div className="relative p-6 text-center">
+              <div className="mb-4 text-4xl">🎭</div>
+              <h4 className="mb-2 font-bold text-zinc-100">2. Pick a Tone</h4>
+              <p className="text-sm text-zinc-500 leading-relaxed">Choose between Provocative, Educational, or Authentic vibes.</p>
+            </div>
+            <div className="relative p-6 text-center">
+              <div className="mb-4 text-4xl">🚀</div>
+              <h4 className="mb-2 font-bold text-zinc-100">3. Go Viral</h4>
+              <p className="text-sm text-zinc-500 leading-relaxed">Get a structured LinkedIn post ready to copy, paste, and engage.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-12 rounded-3xl border border-zinc-900 bg-zinc-950/50 p-8 md:p-12 mb-12">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+            <div>
+              <h3 className="text-xl font-bold text-zinc-100 mb-6">Frequently Asked Questions</h3>
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm font-bold text-emerald-400">Is this a subscription?</p>
+                  <p className="text-sm text-zinc-500 mt-1">Yes, the Founder Pass is a monthly subscription. You can cancel anytime directly from your profile dashboard.</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-emerald-400">What is the Refund Policy?</p>
+                  <p className="text-sm text-zinc-500 mt-1">We offer a 7-day no-questions-asked refund. Check our Refund Policy page for full details.</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col justify-center rounded-2xl border border-zinc-800/50 bg-[#040706] p-6 text-center">
+              <p className="text-xs font-medium uppercase tracking-widest text-zinc-500 mb-4">Official Payment Partner</p>
+              <div className="flex items-center justify-center gap-2 opacity-80 transition-all hover:opacity-100">
+                <span className="text-xl font-bold text-white tracking-tight">Razorpay</span>
+              </div>
+              <p className="mt-4 text-[10px] text-zinc-600 leading-relaxed">
+                Payments are 100% encrypted and secured. <br/>
+                Your card details never touch our servers.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <footer className="mt-10 border-t border-zinc-900 py-12 text-center">
           <div className="mb-10 flex flex-wrap justify-center gap-6 text-sm text-zinc-400">
             <a href="/terms" className="transition-colors hover:text-emerald-400 hover:underline">Terms & Conditions</a>
             <a href="/privacy" className="transition-colors hover:text-emerald-400 hover:underline">Privacy Policy</a>

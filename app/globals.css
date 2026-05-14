@@ -24,3 +24,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer utilities {
+  .emerald-glow {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  }
+}
