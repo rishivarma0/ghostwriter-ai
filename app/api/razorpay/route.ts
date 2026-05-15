@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
     // UPDATED PRICE: 24900 paise = ₹249.00
     const options = {
-      amount: 249, 
+      amount: 24900, 
       currency: "INR",
       receipt: `rcpt_${userId.slice(-10)}_${Date.now().toString().slice(-8)}`,
     };
